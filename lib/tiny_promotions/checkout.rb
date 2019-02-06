@@ -14,7 +14,7 @@ module TinyPromotions
 
     def scan(item)
       @items << item
-      @total = @items.reduce(0.0) { |acc, item| acc += item.price; acc }
+      #@total = @items.reduce(0.0) { |acc, item| acc += item.price; acc }
       run_engines
       self
     end
