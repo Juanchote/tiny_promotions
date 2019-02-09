@@ -11,6 +11,11 @@ module TinyPromotions::Promotions::Engines
 
     def call
       calc_total
+      if applies?
+        @context.discount += @discount
+        @context.total = apply_discount
+      end
+      self
     end
 
     def result

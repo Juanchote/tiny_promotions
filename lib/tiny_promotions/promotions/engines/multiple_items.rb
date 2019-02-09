@@ -3,19 +3,13 @@ module TinyPromotions::Promotions::Engines
     attr_reader :discount, :max, :code
 
     def post_initialize(rules)
-      @discount, @max, @code = rules.dig(:discount), rules.dig(:max), rules.dig(:code)
-    end
-
-    def call
-      super
-      @context.total = apply_discount if applies?
-      self
+      @discount, @min_items, @code = rules.dig(:discount), rules.dig(:min_items), rules.dig(:code)
     end
 
     def applies?
       @context.items.select do |item|
         item.code == @code
-      end.size >= @max
+      end.size >= @min_items
     end
   end
 end

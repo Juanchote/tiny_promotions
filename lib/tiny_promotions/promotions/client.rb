@@ -8,26 +8,40 @@ module TinyPromotions::Promotions
     attr_reader :invoker, :engines, :context
 
     ENGINES = {
-      cart_total: TinyPromotions::Promotions::Engines::CartTotal
+      cart_total: TinyPromotions::Promotions::Engines::CartTotal,
+      multiple_items: TinyPromotions::Promotions::Engines::MultipleItems
     }.freeze
 
     def initialize(config, context)
       @context = context
       @invoker = TinyPromotions::Promotions::Invoker.new
       @engines = []
-      @engines << TinyPromotions::Promotions::Engines::CartTotal.new(context, { discount: 10, max: 50 })
-      @engines << TinyPromotions::Promotions::Engines::MultipleItems.new(context, { discount: 20, max: 2, code: "foo" })
+      load_config(config)
     end
 
-    def find(name)
+    def history
+      @invoker.history
+    end
+
+    def find(name, params)
       raise Unknown, "Unknown promotion: #{name}" unless ENGINES.key?(name)
 
-      ENGINES[name].new(params={})
+      ENGINES[name].new(@context, params)
     end
 
     def call
       @engines.each do |engine|
         @invoker.call(engine)
+      end
+    end
+
+    private
+
+    def load_config(ary)
+      @engines = ary.map do |engine|
+        temp = engine.dup
+        name = temp.delete(:name)
+        find(name.to_sym, temp)
       end
     end
   end

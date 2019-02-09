@@ -3,33 +3,44 @@ require 'tiny_promotions/promotions/client'
 
 module TinyPromotions
   class Checkout
-    attr_reader :items, :engine_client
-    attr_accessor :total
+    attr_reader :items, :engine_client, :original_price, :tax_price
+    attr_accessor :total, :discount
 
-    def initialize(yaml)
+    def initialize(config={})
       @items = []
-      @total = 0.0
-      load_presets(yaml)
+      reset_values!
+      load_presets(config)
     end
 
     def scan(item)
       @items << item
-      #@total = @items.reduce(0.0) { |acc, item| acc += item.price; acc }
-      run_engines
+      recalc!
       self
     end
 
-    def history
-      @engine_client.invoker.history
+    def recalc!
+      reset_values!
+      run_engines!
     end
 
-    def config(&block)
+    def history
+      @engine_client.history
+    end
 
+    def original_price
+      @original_price = @items.reduce(0.0) { |acc, item| acc += item.price; acc }
     end
 
     private
 
-    def run_engines
+    def reset_values!
+      @total = original_price
+      @original_price = original_price
+      @discount = 0.0
+      true
+    end
+
+    def run_engines!
       @engine_client.call
     end
 
