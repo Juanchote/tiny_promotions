@@ -10,7 +10,7 @@ module TinyPromotions::Promotions
     ENGINES = {
       cart_total: TinyPromotions::Promotions::Engines::CartTotal,
       multiple_items: TinyPromotions::Promotions::Engines::MultipleItems
-    }.freeze
+    }
 
     def initialize(config, context)
       @context = context
@@ -37,8 +37,13 @@ module TinyPromotions::Promotions
 
     private
 
-    def load_config(ary)
-      @engines = ary.map do |engine|
+    def load_path(path)
+      #TODO load path
+    end
+
+    def load_config(config)
+      load_path(path = config.dig(:path)) unless config.dig(:path).nil?
+      @engines = config.dig(:engines).map do |engine|
         temp = engine.dup
         name = temp.delete(:name)
         find(name.to_sym, temp)

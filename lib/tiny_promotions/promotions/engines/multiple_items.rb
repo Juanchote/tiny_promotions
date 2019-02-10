@@ -1,9 +1,9 @@
 module TinyPromotions::Promotions::Engines
   class MultipleItems < Base
-    attr_reader :discount, :max, :code
+    attr_reader :min_items, :code
 
     def post_initialize(rules)
-      @discount, @min_items, @code = rules.dig(:discount), rules.dig(:min_items), rules.dig(:code)
+      @min_items, @code = rules.dig(:min_items), rules.dig(:code)
     end
 
     def applies?

@@ -1,5 +1,6 @@
 require 'tiny_promotions/models/item'
 require 'tiny_promotions/promotions/client'
+require 'tiny_promotions/utils/string'
 
 module TinyPromotions
   class Checkout

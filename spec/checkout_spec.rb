@@ -1,4 +1,3 @@
-require 'pry'
 RSpec.describe TinyPromotions::Checkout do
   let(:item_foo_1) { TinyPromotions::Models::Item.new("foo", "foo", 40) }
   let(:item_foo_2) { TinyPromotions::Models::Item.new("foo", "foo", 40) }
@@ -6,11 +5,15 @@ RSpec.describe TinyPromotions::Checkout do
 
   describe "with 2 same products" do
     let(:discount_config) {
-      [{name: 'multiple_items', discount: 10, min_items: 2, code: 'foo'}] 
+      { path: nil, engines: [{name: 'multiple_items', discount: {type: 'fixed', amount: 10}, min_items: 2, code: 'foo'}] }
+    }
+
+    let(:percent_discount_config) {
+      { path: nil, engines: [{name: 'multiple_items', discount: {type: 'percent', amount: 50}, min_items: 2, code: 'foo'}] }
     }
 
     let(:no_discount_config) {
-      [{name: 'cart_total', discount: 10, min_total: 200}] 
+      { path: nil, engines: [{name: 'cart_total', discount: { type: 'fixed', amount: 10}, min_total: 200}] }
     }
 
     it "expect to discount $10" do
@@ -20,15 +23,19 @@ RSpec.describe TinyPromotions::Checkout do
     it "expect the same price" do
       calc_checkouts(no_discount_config, item_foo_1, item_foo_2)
     end
+
+    it "expect to discount 50% of total" do
+      calc_checkouts(percent_discount_config, item_foo_1, item_foo_2)
+    end
   end
 
   describe "with 2 items total more than $50" do
     let(:discount_config) {
-      [{name: 'cart_total', discount: 10, min_total: 50}] 
+      { path: nil, engines: [{name: 'cart_total', discount: { type: 'fixed', amount: 10}, min_total: 50}] }
     }
 
     let(:no_discount_config) {
-      [{name: 'cart_total', discount: 10, min_total: 100}] 
+      { path: nil, engines: [{name: 'cart_total', discount: { type: 'fixed', amount: 10}, min_total: 100}]  }
     }
 
     it "expect to discount $10" do
@@ -42,12 +49,12 @@ RSpec.describe TinyPromotions::Checkout do
 
   describe "with 2 same products and 1 diff product" do
     let(:discount_config) {
-      [{name: 'cart_total', discount: 10, min_total: 50},
-       {name: 'multiple_items', discount: 10, min_items: 2}] 
+      { path: nil, engines: [{name: 'cart_total', discount: { type: 'fixed', amount: 10}, min_total: 50},
+       {name: 'multiple_items', discount: { type: 'fixed', amount: 10}, min_items: 2}]      }
     }
 
     let(:no_discount_config) {
-     []
+      {path: nil, engines: [] }
     }
 
     it "expect to discount $20" do
@@ -56,6 +63,16 @@ RSpec.describe TinyPromotions::Checkout do
 
     it "expect the same price" do
       calc_checkouts(no_discount_config, item_foo_1, item_bar_1, item_foo_2)
+    end
+  end
+
+  describe "with fixed and percent discount at the same time" do
+    let(:discount_config) {
+      { path: nil, engines: [{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50},
+       {name: 'multiple_items', discount: { type: 'fixed', amount: 10}, min_items: 2}]      }
+    }
+    it "expect to first discount by % and then by fixed" do
+      calc_checkouts(discount_config, item_foo_1, item_bar_1, item_foo_2)
     end
   end
 

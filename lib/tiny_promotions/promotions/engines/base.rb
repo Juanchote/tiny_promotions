@@ -6,13 +6,14 @@ module TinyPromotions::Promotions::Engines
 
     def initialize(context, rules={})
       @context = context
+      @discount_rules = rules.dig(:discount)
       post_initialize(rules)
     end
 
     def call
       calc_total
       if applies?
-        @context.discount += @discount
+        @context.discount += calc_discount
         @context.total = apply_discount
       end
       self
@@ -27,6 +28,21 @@ module TinyPromotions::Promotions::Engines
     end
 
     private
+
+    def calc_discount
+      @discount = case @discount_rules.dig(:type)
+        when 'fixed' then fixed_discount
+        when  'percent' then percent_discount
+      end
+    end
+
+    def fixed_discount
+      (@total * (@discount_rules.dig(:amount)/100)).to_f
+    end
+
+    def percent_discount
+      @discount_rules.dig(:amount).to_f
+    end
 
     def calc_total
       @total = @context.items.map{ |item| item.price }.reduce(:+)
