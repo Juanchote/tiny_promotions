@@ -5,7 +5,9 @@ require 'simplecov-console'
 
 SimpleCov.formatter = SimpleCov::Formatter::Console
 
-SimpleCov.start
+SimpleCov.start do
+  add_filter "examples/foo_bars.rb"
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
