@@ -21,10 +21,12 @@ Checkout: Main class.
 
 	TinyPromotions::Checkout.new(config)
 Config:
-| key     | type   | desc                      | example                                                                         |
-|---------|--------|---------------------------|---------------------------------------------------------------------------------|
-| path    | String | path for custom engines   | "../spec/engines"                                                               |
-| engines | Array  | Array of engines to apply | [{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}] |
+
+| key     | type   | desc                      | example                                                                         
+|---------|--------|---------------------------|---------------------------------------------------------------------------------
+| path    | String | path for custom engines   | "../spec/engines"                                                               
+| engines | Array  | Array of engines to apply | [{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}] 
+
 Engines:
 [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern).
 Client: Client responsible of the logic of the pattern.
