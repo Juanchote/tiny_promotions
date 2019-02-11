@@ -27,6 +27,33 @@ Config:
 | path    | String | path for custom engines   | "../spec/engines"                                                               
 | engines | Array  | Array of engines to apply | [{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}] 
 
+Engine key:
+
+| key      | type   | desc               | example                    
+|----------|--------|--------------------|----------------------------
+| name     | String | name of the engine | "cart_total"
+| discount | Hash   | discount Specs     | {type: 'fixed', amount: 10}
+
+Add custom fields as needed for the engine logic
+
+Discount Key:
+
+| key  | type    | desc             | example
+|------|---------|------------------|--------------------------------------------------
+| type | String  | type of discount | 'fixed' -> fixed amount, 'percent' -> percentage
+| amount | Float | amount           | 10.0
+
+Item: Cart Item
+
+  TinyPromotions::Models::Item(code, desc, price)
+params:
+
+| key  | type   | desc                | example
+|------|--------|---------------------|----
+| code | String | code of the product | "foo"
+| desc | String | description         | "Best product ever"
+|price | Float  | price               | 5.99
+
 Engines:
 [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern).
 Client: Client responsible of the logic of the pattern.
@@ -205,8 +232,8 @@ end
 Now inject the new engine to a checkout.
 ```ruby
 TinyPromotions::Checkout.new({
-  path: "/path/to/engines",
-  engines: [{name: 'foo_bars', code_1: 'foo', min_product_1: 1, code_2: 'bar', min_product_2: 2}]
+  path: "./examples",
+  engines: [{name: 'foo_bars', code_1: 'foo', min_product_1: 1, code_2: 'bar', min_product_2: 2, discount: {type: 'fixed', amount: 10}}]
 })
 ```
 Start adding items to the checkout and see the result.
