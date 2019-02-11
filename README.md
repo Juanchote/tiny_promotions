@@ -23,8 +23,8 @@ Checkout: Main class.
 Config:
 |key|Type|desc|example|
 |--|--|--|--|
-|path|String  |path for custom engines|"spec/engines"
-|engines|Array|Array of engines to load|[{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}]
+|path|String|path for custom engines|"spec/engines"|
+|engines|Array|Array of engines to load|[{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}]|
 
 Engines:
 [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern).
