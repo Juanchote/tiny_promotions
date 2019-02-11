@@ -24,8 +24,8 @@ module TinyPromotions
       run_engines!
     end
 
-    def history
-      @engine_client.history
+    def log
+      @engine_client.log
     end
 
     def original_price

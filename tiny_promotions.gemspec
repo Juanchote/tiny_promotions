@@ -7,10 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "tiny_promotions"
   spec.version       = TinyPromotions::VERSION
   spec.authors       = ["Juanma"]
-  spec.email         = ["juanma.rodulfo@eelp.com"]
+  spec.email         = ["jm.rodulfo.salcedo@gmail.com"]
 
-  spec.summary       = ""
-  spec.description   = ""
+  spec.summary       = "Cart discount gem"
+  spec.description   = "This gem allows you to play with a cart and add items to it with custom discounts based on rules set."
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -35,5 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "pry", "> 0"
+  spec.add_development_dependency "pry", "~> 0.12.2"
+  spec.add_development_dependency 'simplecov', '~> 0.16.1'
+  spec.add_development_dependency 'simplecov-console', '~> 0.4.2'
 end

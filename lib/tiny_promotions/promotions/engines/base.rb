@@ -4,6 +4,18 @@ module TinyPromotions::Promotions::Engines
   class Base
     attr_reader :context, :rules
 
+    def self.descendants
+      ObjectSpace.each_object(Class).select { |klass| klass < self }
+    end
+
+    def self.subclasses
+      subclasses, chain = [], descendants
+      chain.each do |k|
+        subclasses << k unless chain.any? { |c| c > k }
+      end
+      subclasses
+    end
+
     def initialize(context, rules={})
       @context = context
       @discount_rules = rules.dig(:discount)

@@ -5,7 +5,7 @@ RSpec.describe TinyPromotions::Promotions::Client do
     }
 
     let(:foo_bars_config) { 
-      { path: 'spec/test_engines', engines: [{name: 'foo_bars', discount: { type: 'fixed', amount: 10}, code_1: 'foo', min_product_1: 1, code_2: 'bar', min_produc_2: 2}] }
+      { path: './examples', engines: [{name: 'foo_bars', discount: { type: 'fixed', amount: 10}, code_1: 'foo', min_product_1: 1, code_2: 'bar', min_produc_2: 2}] }
     }
 
     it "expect to load CartTotal engine" do
@@ -15,8 +15,10 @@ RSpec.describe TinyPromotions::Promotions::Client do
       expect(client.engines[0]).to be_kind_of(TinyPromotions::Promotions::Engines::CartTotal) 
     end
 
-    xit "expect to load new path" do
+    it "expect to load new path" do
+      client = TinyPromotions::Promotions::Client.new(foo_bars_config, nil)
 
+      expect(FooBars).to eq(FooBars)
     end
   end
 end
