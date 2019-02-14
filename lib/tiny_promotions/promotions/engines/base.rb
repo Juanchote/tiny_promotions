@@ -4,6 +4,29 @@ module TinyPromotions::Promotions::Engines
   class Base
     attr_reader :context, :rules
 
+    def initialize(context, rules={})
+      @context = context
+      @discount_rules = rules.dig(:discount)
+      post_initialize(rules)
+    end
+
+    def call
+      calc_total
+      return self unless applies?
+
+      @context.discount += calc_discount
+      @context.total = apply_discount
+      self
+    end
+
+    def result
+      TinyPromotions::Promotions::History::LogResult.new(self)
+    end
+
+    def applies?
+      raise MethodNotDefined
+    end
+
     def self.descendants
       ObjectSpace.each_object(Class).select { |klass| klass < self }
     end
@@ -16,28 +39,6 @@ module TinyPromotions::Promotions::Engines
       subclasses
     end
 
-    def initialize(context, rules={})
-      @context = context
-      @discount_rules = rules.dig(:discount)
-      post_initialize(rules)
-    end
-
-    def call
-      calc_total
-      if applies?
-        @context.discount += calc_discount
-        @context.total = apply_discount
-      end
-      self
-    end
-
-    def result
-      TinyPromotions::Promotions::History::LogResult.new(self)
-    end
-
-    def applies?
-      raise MethodNotDefined
-    end
 
     private
 
@@ -48,16 +49,16 @@ module TinyPromotions::Promotions::Engines
       end
     end
 
-    def fixed_discount
+    def percent_discount
       (@total * (@discount_rules.dig(:amount)/100)).to_f
     end
 
-    def percent_discount
+    def fixed_discount
       @discount_rules.dig(:amount).to_f
     end
 
     def calc_total
-      @total = @context.items.map{ |item| item.price }.reduce(:+)
+      @total = @context.items.map(&:price).reduce(:+)
     end
 
     def apply_discount

@@ -3,7 +3,8 @@ module TinyPromotions::Promotions::Engines
     attr_reader :min_items, :code
 
     def post_initialize(rules)
-      @min_items, @code = rules.dig(:min_items), rules.dig(:code)
+      @min_items = rules.dig(:min_items)
+      @code = rules.dig(:code)
     end
 
     def applies?
