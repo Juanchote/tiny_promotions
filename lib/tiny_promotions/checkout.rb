@@ -40,8 +40,8 @@ module TinyPromotions
     end
 
     def reset_values!
-      @total = original_price
-      @original_price = original_price
+      @total = original_price || 0.0
+      @original_price = original_price || 0.0
       @discount = 0.0
       true
     end

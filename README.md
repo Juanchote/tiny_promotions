@@ -23,36 +23,54 @@ Checkout: Main class.
 Config:
 
 | key     | type   | desc                      | example                                                                         
-|---------|--------|---------------------------|---------------------------------------------------------------------------------
-| path    | String | path for custom engines   | "../spec/engines"                                                               
-| engines | Array  | Array of engines to apply | [{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50}] 
+|---------|--------|---------------------------|------------------------------------------------------------------------------------------------
+| path    | String | (optional) path for custom engines   | "../spec/engines"                                                               
+| engines | Array  | Array of engines to apply | [{name: 'cart_total', discount: { type: 'percent', amount: 50}, validator: { min_total: 50 }}] 
 
 Engine key:
 
 | key      | type   | desc               | example                    
-|----------|--------|--------------------|----------------------------
+|----------|--------|--------------------|------------------------------------------------
 | name     | String | name of the engine | "cart_total"
-| discount | Hash   | discount Specs     | {type: 'fixed', amount: 10}
+| discount | Hash   | discount Specs     | {type: 'fixed', amount: 10, apply_to: 'global'}
 
-Add custom fields as needed for the engine logic
+Validator key:
+
+Custom keys based on the logic of the Validator.
+
+CartTotal validator:
+
+| key       | type    | desc                   | example
+|-----------|---------|------------------------|--------
+| min_total | Integer | min price of the cart | 50
+
+MultipleItems validator:
+
+| key       | type    | desc                   | example
+|-----------|---------|------------------------|--------
+| min_items | Integer | min items to apply     | 3
+| code      | String  | code to match          | 'foo'
+
 
 Discount Key:
 
-| key  | type    | desc             | example
-|------|---------|------------------|--------------------------------------------------
-| type | String  | type of discount | 'fixed' -> fixed amount, 'percent' -> percentage
-| amount | Float | amount           | 10.0
+| key      | type    | desc                          | example
+|----------|---------|-------------------------------|--------------------------------------------------
+| type     | String  | type of discount              | 'fixed' -> fixed amount, 'percent' -> percentage
+| amount   | Float   | amount                        | 10.0
+| apply_to | String  | Apply to all cart or to items | 'global' / 'item' 
 
 Item: Cart Item
 
   TinyPromotions::Models::Item(code, desc, price)
 params:
 
-| key  | type   | desc                | example
-|------|--------|---------------------|----
-| code | String | code of the product | "foo"
-| desc | String | description         | "Best product ever"
-|price | Float  | price               | 5.99
+| key            | type   | desc                | example
+|----------------|--------|---------------------|----
+| code           | String | code of the product | "foo"
+| desc           | String | description         | "Best product ever"
+| price          | Float  | price               | 5.99
+| original_price | Float  | original price      | 9.99
 
 Engines:
 [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern).
@@ -64,31 +82,42 @@ Engines::Base: Abstract class of the commands
 ## Usage
 Instantiate a new checkout:
 ```ruby
-co = TinyPromotions::Checkout.new({ path: nil,
+co = TinyPromotions::Checkout.new({
 	engines: [
-	{name: 'cart_total', discount: { type: 'percent', amount: 50}, min_total: 50},
-	{name: 'multiple_items', discount: { type: 'fixed', amount: 10}, code: 'foo', min_items: 2}
+	{name: 'cart_total', discount: { type: 'percent', amount: 50, apply_to: 'global' }, validator: { min_total: 50}},
+	{name: 'multiple_items', discount: { type: 'fixed', amount: 10, apply_to: 'global' }, validator: { code: 'foo', min_items: 2 }}
 	]
 })
-#=> #<TinyPromotions::Checkout:0x00007f9e7f224398
+=> #<TinyPromotions::Checkout:0x00007f91a8a49d18
  @discount=0.0,
  @engine_client=
-  #<TinyPromotions::Promotions::Client:0x00007f9e7f2242a8
-   @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
+  #<TinyPromotions::Promotions::Client:0x00007f91a8a49bb0
+   @config=
+    {:engines=>
+      [{:name=>"cart_total", :discount=>{:type=>"percent", :amount=>50, :apply_to=>"global"}, :validator=>{:min_total=>50}},
+       {:name=>"multiple_items", :discount=>{:type=>"fixed", :amount=>10, :apply_to=>"global"}, :validator=>{:code=>"foo", :min_items=>2}}]},
+   @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
    @engines=
-    [#<TinyPromotions::Promotions::Engines::CartTotal:0x00007f9e7f224190
-      @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
-      @discount_rules={:type=>"percent", :amount=>50},
-      @min_total=50>,
-     #<TinyPromotions::Promotions::Engines::MultipleItems:0x00007f9e7f2240f0
-      @code="foo",
-      @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
-      @discount_rules={:type=>"fixed", :amount=>10},
-      @min_items=2>],
-   @invoker=#<TinyPromotions::Promotions::Invoker:0x00007f9e7f224280>>,
+    [#<TinyPromotions::Promotions::Engine:0x00007f91a8a49a70
+      @discount_processor=
+       #<TinyPromotions::Promotions::DiscountProcessors::Global:0x00007f91a8a49ac0
+        @config={:name=>"cart_total", :discount=>{:type=>"percent", :amount=>50, :apply_to=>"global"}, :validator=>{:min_total=>50}},
+        @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
+        @discount_rules={:type=>"percent", :amount=>50, :apply_to=>"global"}>,
+      @validator=#<TinyPromotions::Promotions::Validators::CartTotal:0x00007f91a8a49ae8 @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>, @min_total=50>>,
+     #<TinyPromotions::Promotions::Engine:0x00007f91a8a499d0
+      @discount_processor=
+       #<TinyPromotions::Promotions::DiscountProcessors::Global:0x00007f91a8a49a20
+        @config={:name=>"multiple_items", :discount=>{:type=>"fixed", :amount=>10, :apply_to=>"global"}, :validator=>{:code=>"foo", :min_items=>2}},
+        @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
+        @discount_rules={:type=>"fixed", :amount=>10, :apply_to=>"global"}>,
+      @validator=
+       #<TinyPromotions::Promotions::Validators::MultipleItems:0x00007f91a8a49a48 @code="foo", @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>, @min_items=2>>],
+   @invoker=#<TinyPromotions::Promotions::Invoker:0x00007f91a8a49b88>>,
  @items=[],
  @original_price=0.0,
  @total=0.0>
+
 ```
 Start adding 
 
@@ -104,71 +133,37 @@ to the checkout using
 Ex.
 ```ruby
 co.scan(TinyPromotions::Models::Item.new("foo", "desc", 100))
-=> #<TinyPromotions::Checkout:0x00007f9e7f224398
- @discount=50.0,
+=> #<TinyPromotions::Checkout:0x00007f91a8a49d18
+ @discount=0.0,
  @engine_client=
-  #<TinyPromotions::Promotions::Client:0x00007f9e7f2242a8
-   @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
+  #<TinyPromotions::Promotions::Client:0x00007f91a8a49bb0
+   @config=
+    {:engines=>
+      [{:name=>"cart_total", :discount=>{:type=>"percent", :amount=>50, :apply_to=>"global"}, :validator=>{:min_total=>50}},
+       {:name=>"multiple_items", :discount=>{:type=>"fixed", :amount=>10, :apply_to=>"global"}, :validator=>{:code=>"foo", :min_items=>2}}]},
+   @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
    @engines=
-    [#<TinyPromotions::Promotions::Engines::CartTotal:0x00007f9e7f224190
-      @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
-      @discount=50.0,
-      @discount_rules={:type=>"percent", :amount=>50},
-      @min_total=50,
-      @total=100>,
-     #<TinyPromotions::Promotions::Engines::MultipleItems:0x00007f9e7f2240f0
-      @code="foo",
-      @context=#<TinyPromotions::Checkout:0x00007f9e7f224398 ...>,
-      @discount_rules={:type=>"fixed", :amount=>10},
-      @min_items=2,
-      @total=100>],
-   @invoker=
-    #<TinyPromotions::Promotions::Invoker:0x00007f9e7f224280
-     @history=
-      [#<TinyPromotions::Promotions::History::LogResult:0x00007f9e8095f058
-        @message="Applied engine: TinyPromotions::Promotions::Engines::CartTotal">]>>,
- @items=
-  [#<TinyPromotions::Models::Item:0x00007f9e8095f5d0
-    @code="foo",
-    @name="desc",
-    @price=100>],
- @original_price=100.0,
+    [#<TinyPromotions::Promotions::Engine:0x00007f91a8a49a70
+      @discount_processor=
+       #<TinyPromotions::Promotions::DiscountProcessors::Global:0x00007f91a8a49ac0
+        @config={:name=>"cart_total", :discount=>{:type=>"percent", :amount=>50, :apply_to=>"global"}, :validator=>{:min_total=>50}},
+        @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
+        @discount=50.0,
+        @discount_rules={:type=>"percent", :amount=>50, :apply_to=>"global"},
+        @total=100>,
+      @validator=#<TinyPromotions::Promotions::Validators::CartTotal:0x00007f91a8a49ae8 @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>, @min_total=50>>,
+     #<TinyPromotions::Promotions::Engine:0x00007f91a8a499d0
+      @discount_processor=
+       #<TinyPromotions::Promotions::DiscountProcessors::Global:0x00007f91a8a49a20
+        @config={:name=>"multiple_items", :discount=>{:type=>"fixed", :amount=>10, :apply_to=>"global"}, :validator=>{:code=>"foo", :min_items=>2}},
+        @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>,
+        @discount_rules={:type=>"fixed", :amount=>10, :apply_to=>"global"}>,
+      @validator=
+       #<TinyPromotions::Promotions::Validators::MultipleItems:0x00007f91a8a49a48 @code="foo", @context=#<TinyPromotions::Checkout:0x00007f91a8a49d18 ...>, @min_items=2>>],
+   @invoker=#<TinyPromotions::Promotions::Invoker:0x00007f91a8a49b88 @history=[]>>,
+ @items=[#<TinyPromotions::Models::Item:0x00007f91a8bf1350 @code="foo", @name="desc", @original_price=100, @price=100>],
+ @original_price=100,
  @total=50.0>
-```
-## The Checkout Response:
-```ruby
-=> #<TinyPromotions::Checkout:0x00007f9e7f224398
- @discount=50.0, #total discount applied
- @engine_client=
-  #<TinyPromotions::Promotions::Client: #comman client
-   @context=#<TinyPromotions::Checkout: ...>, #checkout reference
-   @engines= #List of engines to apply
-    [#<TinyPromotions::Promotions::Engines::CartTotal:
-      @context=#<TinyPromotions::Checkout: ...>, #checkout reference
-      @discount=50.0, #engine's discount applied to the current cart (if any)
-      @discount_rules= #config of the engine
-	      {:type=>"percent", :amount=>50},
-	      @min_total=50,
-	      @total=100>,
-     #<TinyPromotions::Promotions::Engines::MultipleItems:
-      @code="foo",
-      @context=#<TinyPromotions::Checkout: ...>, #checkout reference
-      @discount_rules= #config of the engine
-	      {:type=>"fixed", :amount=>10},
-	      @min_items=2,
-	      @total=100>],
-   @invoker= #Invoker of engines (commands)
-    #<TinyPromotions::Promotions::Invoker:
-     @history= #Log of discounts successfully applied
-      [#<TinyPromotions::Promotions::History::LogResult:
-        @message="Applied engine: TinyPromotions::Promotions::Engines::CartTotal">]>>,
- @items= #Array of products in the cart
-  [#<TinyPromotions::Models::Item:
-    @code="foo",
-    @name="desc",
-    @price=100>],
- @original_price=100.0, #price without discounts
- @total=50.0> #original_price - discount
 ```
 
 ## Engines:
@@ -180,8 +175,8 @@ Ex.
 ```ruby
 {
   name: "cart_total",
-  discount: 10,
-  min_total: 50,
+  discount: { type: 'fixed', amount: 10, apply_to: 'global' }
+  validator: { min_total: 50 }
 }
 ```
 This engine will discount $10 when the cart is equal or more than $50.
@@ -191,9 +186,8 @@ Ex.
 ```ruby
 {
   name: "multiple_items",
-  discount: 25,
-  min_items: 2,
-  code: 'foo'
+  discount: { type: 'percent', amount: 25, apply_to: 'global' }
+  validator: { min_items: 2, code: 'foo' }
 }
 ```
 This engine will discount the discount attribute if there are are at least 2 items with code "foo".
@@ -201,7 +195,7 @@ This engine will discount the discount attribute if there are are at least 2 ite
 ### Create your own Promotion Engine.
 Create a new file that extends from
 
-	TinyPromotions::Promotions::Engines::Base
+	TinyPromotions::Promotions::Validators::Base
 	
 Define 
 
@@ -216,7 +210,7 @@ method where you are going to set when to apply the discount or not.
 
 Ex. Creating a new Engine that will discount when at least 1 product "foo" and 2 products "bar" are in the cart.
 ```ruby
-class FooBars < TinyPromotions::Promotions::Engines::Base
+class FooBars < TinyPromotions::Promotions::Validators::Base
   attr_reader :min_product_1, :code_1, :min_product_2, :code_2
 
   def post_initialize(rules)
@@ -233,27 +227,8 @@ Now inject the new engine to a checkout.
 ```ruby
 TinyPromotions::Checkout.new({
   path: "./examples",
-  engines: [{name: 'foo_bars', code_1: 'foo', min_product_1: 1, code_2: 'bar', min_product_2: 2, discount: {type: 'fixed', amount: 10}}]
+  engines: [{name: 'foo_bars', validator: { code_1: 'foo', min_product_1: 1, code_2: 'bar', min_product_2: 2 }, discount: {type: 'fixed', amount: 10, apply_to: 'global'}}]
 })
 ```
 Start adding items to the checkout and see the result.
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/tiny_promotions. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the TinyPromotions project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/tiny_promotions/blob/master/CODE_OF_CONDUCT.md).
-
 
