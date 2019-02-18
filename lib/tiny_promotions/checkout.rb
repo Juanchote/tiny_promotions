@@ -21,7 +21,7 @@ module TinyPromotions
 
     def recalc!
       reset_values!
-      run_engines!
+      update_prices!(run_engines)
     end
 
     def log
@@ -29,10 +29,15 @@ module TinyPromotions
     end
 
     def original_price
-      @original_price = @items.reduce(0.0) { |acc, item| acc += item.price; acc }
+      @original_price = @items.map(&:original_price).reduce(:+)
     end
 
     private
+
+    def update_prices!(prices)
+      #@total = prices[:total]
+      #@discount = prices[:discount]
+    end
 
     def reset_values!
       @total = original_price
@@ -41,7 +46,7 @@ module TinyPromotions
       true
     end
 
-    def run_engines!
+    def run_engines
       @engine_client.call
     end
 

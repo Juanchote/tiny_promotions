@@ -3,13 +3,12 @@ module TinyPromotions::Promotions
     attr_reader :history
 
     def purge!
-      history = []
+      @history = []
     end
 
     def call(cmd)
       @history ||= []
       cmd.call
-      @history << cmd.result if cmd.applies?
     end
 
     def log
